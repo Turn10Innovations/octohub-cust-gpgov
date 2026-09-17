@@ -1,0 +1,17 @@
+name: Deploy Customizations
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to server
+        run: |
+          echo "TODO: Configure deployment"
+          echo "See docs/DEPLOYMENT_GUIDE.md for setup instructions"

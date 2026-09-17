@@ -1,0 +1,12 @@
+# Company Configuration for GPStrategies Government Solutions (unanet)
+# Update octohub_co_id after creating the company in OctoHub admin
+
+octohub_co_id: "00000000-0000-0000-0000-000000000000"  # TODO: Get from database
+company_slug: "gpgov"
+company_name: "GPStrategies Government Solutions"
+erp_system: "unanet"
+created_at: "2026-09-17T09:32:11-04:00"
+
+settings:
+  # Override category visibility here
+  categories: {}

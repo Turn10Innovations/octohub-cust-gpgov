@@ -1,0 +1,48 @@
+name: Compliance Gate (Layer 1)
+
+# Thin caller for an octohub-cust CLIENT repo. Drop this file into
+# `.github/workflows/` of the client repo. All validator logic lives in
+# octohub-core's reusable workflow (single source of truth — see the core
+# full-hardening master plan §3), so you never copy or maintain rules here: a
+# fix in core reaches this repo automatically on the next PR.
+#
+# new-client.sh scaffolds this file into every new client repo. Existing client
+# repos that predate it get it via the backfill (docs/ci/ORG_RULESET_SPEC.md),
+# and the GitHub org-level required-workflow ruleset is the final backstop that
+# runs the gate even on a repo that somehow lacks this file.
+#
+# Enforcement is OFF until you set the `COMPLIANCE_ENFORCE` repo variable to "1"
+# (Settings -> Secrets and variables -> Actions -> Variables, or
+# `gh variable set COMPLIANCE_ENFORCE --body 1`). Until then the gate annotates
+# findings but stays green (burn-in). Flip a strict-CUI client to enforce early.
+
+on:
+  pull_request:
+    # `edited` so an AI-attribution marker added to the PR body AFTER the last
+    # push is still caught.
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+    branches: [main, master, dev]
+
+concurrency:
+  group: compliance-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: false   # a cancelled run concludes non-success and would
+                              # wedge this check once it is a required gate.
+
+jobs:
+  compliance-gate:
+    permissions:
+      contents: read
+    # Pinned to @master — octohub-core's real default branch (there is no `main`).
+    # When core cuts the engine behind a version tag, move this to that tag
+    # (e.g. @v1) — AND core's ENGINE_REF with it — so a bad change to the engine
+    # cannot fan out to every client repo instantly.
+    uses: Turn10Innovations/octohub-core/.github/workflows/compliance-reusable.yml@master
+    with:
+      repo-type: cust
+    # Optional. Set a repo secret LEAK_DENYLIST (newline-separated real
+    # deployment / client names) to switch on leak_prevention's NAME layer for
+    # this repo. Without it only the regex layer runs and the gate emits a
+    # "deny-list not loaded" advisory. Explicit rather than `secrets: inherit`
+    # so the shared workflow only ever receives this one value.
+    secrets:
+      LEAK_DENYLIST: ${{ secrets.LEAK_DENYLIST }}
